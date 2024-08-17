@@ -46,13 +46,16 @@ namespace ChainedChickenMod
                 return Tex2D;
             }
 
-            string path = Path.Combine(Paths.PluginPath, "ChainedChickenMod", "link.png");
+            var assembly =  typeof(ChainedChickenMod).Assembly;
+            var resourceStream = assembly.GetManifestResourceStream("ChainedChicken.link.png");
 
-            if (File.Exists(path))
+            if (resourceStream != null)
             {
-                byte[] FileData = File.ReadAllBytes(path);
+                byte[] linkData = new byte[resourceStream.Length];
+                resourceStream.Read(linkData, 0, linkData.Length);
+
                 Tex2D = new Texture2D(2, 2);          
-                if (Tex2D.LoadImage(FileData))          
+                if (Tex2D.LoadImage(linkData))          
                     return Tex2D;             
             }
 

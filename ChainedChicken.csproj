@@ -83,13 +83,14 @@
   <ItemGroup>
     <Publicize Include="Assembly-CSharp" />
   </ItemGroup>
-  
+  <ItemGroup>
+    <EmbeddedResource Include="link.png" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
       if not exist  "$(UCHfolder)\BepInEx\plugins\" mkdir "$(UCHfolder)\BepInEx\plugins\"
       if not exist  "$(UCHfolder)\BepInEx\plugins\ChainedChickenMod\" mkdir "$(UCHfolder)\BepInEx\plugins\ChainedChickenMod\"
       copy "ChainedChickenMod.dll" "$(UCHfolder)\BepInEx\plugins\ChainedChickenMod" /y
-      copy "..\..\link.png" "$(UCHfolder)\BepInEx\plugins\ChainedChickenMod" /y
       start explorer.exe "steam://rungameid/386940"
   </PostBuildEvent>
   </PropertyGroup>
