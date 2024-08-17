@@ -1,10 +1,16 @@
-# Cam Hog Mod - Hide other players
+# Chained Chicken Mod - Chained Together meets UCH
+
+![chainchicken_logo-removebg-preview](https://github.com/user-attachments/assets/f1555169-d098-4dfb-9fe4-dd1491331228)
+
+
 This is an `Ultimate Chicken Horse` `BepInEx` mod that chains the players together.
+
+![ChainedChicken](https://github.com/user-attachments/assets/e2227b94-01fe-4d07-9a04-cb5afb5c4567)
 
 
 The chains can be activated in the menu under `Rules & Modifiers` => `Modifiers` => `Chain Players` 
 (all the way at the bottom of the list)
-
+They only work in a local or [EvenMorePlayers](https://github.com/batram/UCH-EvenMorePlayers) lobby, the mod can't be activated in normal Online lobbies.
 
 ## Manual installation
 - Download [BepInEx Version 5](https://github.com/BepInEx/BepInEx/releases/latest) for your platform (windows64 or linux) (UCH is a x64 program)
