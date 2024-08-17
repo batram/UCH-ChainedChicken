@@ -10,6 +10,51 @@ using UnityEngine.Events;
 
 namespace ChainedChickenMod.Patches
 {
+    public class Chain {
+        public static void chainPlayersInLobby(){
+            if(ChainedChickenMod.isLocalOrModded())
+            {
+                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                
+                List<Character> clist = new List<Character>();
+                foreach (LobbyPlayer gamePlayer in LobbyManager.instance.GetLobbyPlayers())
+                {
+                    if (gamePlayer != null && gamePlayer.CharacterInstance != null)
+                    {
+                        clist.Add(gamePlayer.CharacterInstance);
+                    }
+                }
+
+                if(Modifiers.GetInstance().modsPreview && modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
+                {
+                    ChainedChickenMod.chainPlayers(clist);
+                } else {
+                    ChainedChickenMod.clearChain(clist);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.OnModifiersDynamicChange))]
+        static class ModifiersOnModifiersDynamicChangePatch
+        {
+            static public void Prefix(Modifiers __instance)
+            {
+                Debug.Log("OnModifiersDynamicChange ");
+                Chain.chainPlayersInLobby();
+            }
+        }
+
+        [HarmonyPatch(typeof(LobbyPlayer), nameof(LobbyPlayer.RpcRequestPickResponse))]
+        static class LobbyPlayerRpcRequestPickResponsePatch
+        {
+            static public void Postfix(Modifiers __instance)
+            {
+                Debug.Log("OnModifiersDynamicChange ");
+                Chain.chainPlayersInLobby();
+            }
+        }
+    }
+
     public class ModdedModifiers : Modifiers {
         static public bool modded = true;
 
@@ -45,17 +90,7 @@ namespace ChainedChickenMod.Patches
                 __result = Modifiers.instance;
                 return false;
             }
-        }
-
-        [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.OnModifiersDynamicChange))]
-        static class ModifiersOnModifiersDynamicChangePatch
-        {
-            static public void Prefix(Modifiers __instance)
-            {
-                //TODO: callback.execute
-            }
-        }
-        
+        }       
 
     }
 
@@ -283,6 +318,8 @@ namespace ChainedChickenMod.Patches
                     __instance.SetLineModified(cl.transform.Find("Text Label").GetComponent<TabletTextLabel>(), (bool)modins.moddedMods[k].value == (bool)modins.moddedMods[k].defaultValue);
                 }
             }
+
+            Chain.chainPlayersInLobby();
         }
     }
     

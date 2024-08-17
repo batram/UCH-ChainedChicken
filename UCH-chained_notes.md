@@ -16,6 +16,7 @@ Traps
    
 
 Save/Restore Ruleset
+ - reset default broken
 
 Collision enabled weirdness
  - players can walk through each other

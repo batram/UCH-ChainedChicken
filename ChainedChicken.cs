@@ -125,9 +125,8 @@ namespace ChainedChickenMod
             return newLink;
         }
 
-        public static void chainPlayers(List<Character> clist)
+        public static void clearChain(List<Character> clist)
         {
-
             foreach(GameObject go in gl)
             {
                 Destroy(go);
@@ -141,6 +140,12 @@ namespace ChainedChickenMod
                     Destroy(c.gameObject.GetComponent<DistanceJoint2D>());
                 }
             }
+        }
+
+        public static void chainPlayers(List<Character> clist)
+        {
+
+            clearChain(clist);
 
             Debug.Log("clist.Count " + clist.Count);
 
