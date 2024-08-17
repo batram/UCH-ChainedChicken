@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using GameEvent;
+using ChainedChickenMod.Patches;
 
 [assembly: AssemblyVersion("0.0.0.1")]
 [assembly: AssemblyInformationalVersion("0.0.0.1")]
@@ -17,7 +18,6 @@ namespace ChainedChickenMod
     [BepInPlugin("ChainedChicken", "ChainedChicken", "0.0.0.1")]
     public class ChainedChickenMod : BaseUnityPlugin
     {
-        public static bool ChainedModifierEnabled;
         public static GameObject ChainModifiersEntry;
         //public static ConfigEntry<bool> Enabled;
         public static ConfigEntry<int> ChainLength;
@@ -155,19 +155,24 @@ namespace ChainedChickenMod
         {
             static void Postfix(GameControl __instance)
             {
-                if(isLocalOrModded() && ChainedModifierEnabled)
+                if(isLocalOrModded())
                 {
-                    List<Character> clist = new List<Character>();
-                    foreach (GamePlayer gamePlayer in __instance.PlayerQueue)
+                    ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                    
+                    if(modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
                     {
-                        if (gamePlayer != null && gamePlayer.CharacterInstance != null)
+                        List<Character> clist = new List<Character>();
+                        foreach (GamePlayer gamePlayer in __instance.PlayerQueue)
                         {
-                            clist.Add(gamePlayer.CharacterInstance);
+                            if (gamePlayer != null && gamePlayer.CharacterInstance != null)
+                            {
+                                clist.Add(gamePlayer.CharacterInstance);
+                            }
                         }
+
+
+                        chainPlayers(clist);
                     }
-
-
-                    chainPlayers(clist);
                 }
             }
         }
