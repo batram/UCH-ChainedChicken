@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using GameEvent;
 using HarmonyLib;
 using I2.Loc.SimpleJSON;
 using UnityEngine;
@@ -156,312 +157,344 @@ namespace ChainedChickenMod.Patches
             moddedMods = CustomModdedModifiers.ModdedMods;
         }
 
-        [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToModSettings))]
-        static class ModSourceWriteToModSettingsPatch
+        public new void ReadFromModSettings()
         {
-            static public void Postfix(ModSource __instance, bool includeTreehouseSettings)
+            base.ReadFromModSettings();
+            ModdedModifiers mos = (ModdedModifiers)Modifiers.GetInstance();
+
+            foreach (string k in mos.moddedMods.Keys)
             {
-
-                if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
+                if (!moddedMods.ContainsKey(k))
                 {
-                    return;
+                    moddedMods.Add(k, mos.moddedMods[k]);
                 }
-                Debug.Log("what the futz WriteToModSettings: __instance " + __instance.GetType() + " Modifiers : " + Modifiers.GetInstance().GetType());
-
-
-                ModdedModSource mos = (ModdedModSource)__instance;
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-
-                foreach (string k in mos.moddedMods.Keys)
+                else
                 {
-                    if (!modins.moddedMods.ContainsKey(k))
-                    {
-                        modins.moddedMods.Add(k, mos.moddedMods[k]);
-                    }
-                    else
-                    {
-                        modins.moddedMods[k] = mos.moddedMods[k];
-                    }
+                    moddedMods[k] = mos.moddedMods[k];
                 }
             }
-        }
+    }
 
-
-        [HarmonyPatch(typeof(ModSource), nameof(ModSource.IsCurrentlyApplied))]
-        static class ModSourceIsCurrentlyAppliedPatch
+    [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToModSettings))]
+    static class ModSourceWriteToModSettingsPatch
+    {
+        static public void Postfix(ModSource __instance, bool includeTreehouseSettings)
         {
-            static public void Postfix(ModSource __instance, ref bool __result)
+
+            if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
             {
-
-                if (!__result)
-                {
-                    __result = false;
-                }
-
-                if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
-                {
-                    return;
-                }
-                Debug.Log("what the futz IsCurrentlyApplied");
-                Debug.Log("what the futz IsCurrentlyApplied: __instance " + __instance.GetType() + " Modifiers : " + Modifiers.GetInstance().GetType());
-
-
-                ModdedModSource mos = (ModdedModSource)__instance;
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                foreach (string k in mos.moddedMods.Keys)
-                {
-                    if (!modins.moddedMods.ContainsKey(k) || mos.moddedMods[k].value != modins.moddedMods[k].value)
-                    {
-                        __result = false;
-                    }
-                }
-
-                __result = true;
+                return;
             }
-        }
+            Debug.Log("what the futz WriteToModSettings: __instance " + __instance.GetType() + " Modifiers : " + Modifiers.GetInstance().GetType());
 
-        [HarmonyPatch(typeof(ModSource), nameof(ModSource.CompareTo))]
-        static class ModSourceCompareToPatch
-        {
-            static public void Postfix(ModSource __instance, ModSource other, ref bool __result)
+
+            ModdedModSource mos = (ModdedModSource)__instance;
+            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+
+            foreach (string k in mos.moddedMods.Keys)
             {
-                Debug.Log("what the futz CompareTo");
-
-                if (!__result)
+                if (!modins.moddedMods.ContainsKey(k))
                 {
-                    __result = false;
+                    modins.moddedMods.Add(k, mos.moddedMods[k]);
                 }
-                ModdedModSource mos = (ModdedModSource)__instance;
-
-                foreach (string k in mos.moddedMods.Keys)
+                else
                 {
-                    if (!((ModdedModSource)other).moddedMods.ContainsKey(k) || (bool)mos.moddedMods[k].value != (bool)((ModdedModSource)other).moddedMods[k].value)
-                    {
-                        __result = false;
-                    }
-                }
-
-                __result = true;
-            }
-        }
-
-        [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToXmlNode))]
-        static class ModSourceWriteToXmlNodeNodePatch
-        {
-            static public void Prefix(ModSource __instance, XmlDocument doc, XmlElement modsNode)
-            {
-                Debug.Log("what the futz WriteToXmlNode");
-                ModdedModSource mos = (ModdedModSource)__instance;
-                foreach (string k in mos.moddedMods.Keys)
-                {
-                    QuickSaver.AddAttribute(doc, modsNode, k, mos.moddedMods[k].value.ToString());
-                }
-            }
-        }
-
-
-        [HarmonyPatch(typeof(ModSource), nameof(ModSource.ReadFromXmlNode))]
-        static class ModSourceReadFromXmlNodePatch
-        {
-            static public void Prefix(ModSource __instance, XmlNode child)
-            {
-                Debug.Log("what the futz ReadFromXmlNode");
-                ModdedModSource mos = (ModdedModSource)__instance;
-                foreach (string k in mos.moddedMods.Keys)
-                {
-                    if (mos.moddedMods[k].value is bool)
-                    {
-                        mos.moddedMods[k].value = QuickSaver.ParseAttrBool(child, k, (bool)mos.moddedMods[k].defaultValue);
-                    }
+                    modins.moddedMods[k] = mos.moddedMods[k];
                 }
             }
         }
     }
 
 
-    [HarmonyPatch(typeof(GameRulePreset), nameof(GameRulePreset.LoadRulesetFromXML))]
-    static class GameRulePresetLoadRulesetFromXMLPatch
+    [HarmonyPatch(typeof(ModSource), nameof(ModSource.IsCurrentlyApplied))]
+    static class ModSourceIsCurrentlyAppliedPatch
+    {
+        static public void Postfix(ModSource __instance, ref bool __result)
+        {
+
+            if (!__result)
+            {
+                __result = false;
+            }
+
+            if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
+            {
+                return;
+            }
+            ModdedModSource mos = (ModdedModSource)__instance;
+            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+            foreach (string k in mos.moddedMods.Keys)
+            {
+                if (!modins.moddedMods.ContainsKey(k) || mos.moddedMods[k].value != modins.moddedMods[k].value)
+                {
+                    __result = false;
+                }
+            }
+
+            __result = true;
+        }
+    }
+
+    [HarmonyPatch(typeof(ModSource), nameof(ModSource.CompareTo))]
+    static class ModSourceCompareToPatch
+    {
+        static public void Postfix(ModSource __instance, ModSource other, ref bool __result)
+        {
+            Debug.Log("what the futz CompareTo");
+
+            if (!__result)
+            {
+                __result = false;
+            }
+            ModdedModSource mos = (ModdedModSource)__instance;
+
+            foreach (string k in mos.moddedMods.Keys)
+            {
+                if (!((ModdedModSource)other).moddedMods.ContainsKey(k) || (bool)mos.moddedMods[k].value != (bool)((ModdedModSource)other).moddedMods[k].value)
+                {
+                    __result = false;
+                }
+            }
+
+            __result = true;
+        }
+    }
+
+
+    [HarmonyPatch(typeof(GameRulePreset), nameof(GameRulePreset.LoadRulesFromSettings))]
+    static class GameRulePresetLoadRulesFromSettingsPatch
     {
         static public void Prefix(GameRulePreset __instance)
         {
-            Debug.Log("what the futz LoadRulesetFromXML");
-            ModdedModSource modsa = new ModdedModSource();
-            __instance.mods = modsa;
+            Debug.Log("what the futz LoadRulesFromSettings");
+            if (__instance.mods.GetType() != typeof(ModdedModSource))
+            {
+                __instance.mods = new ModdedModSource();
+            }
         }
     }
 
-    class OverlayInfo : TabletButtonEventDispatcher
+    [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToXmlNode))]
+    static class ModSourceWriteToXmlNodeNodePatch
     {
-        public string key;
-
-        public void toggle(bool v)
+        static public void Prefix(ModSource __instance, XmlDocument doc, XmlElement modsNode)
         {
-            Debug.Log("ovi toggle " + key + " => " + v);
-            var tablOverlay = gameObject.GetComponent<TabletModalOverlay>();
+            Debug.Log("what the futz WriteToXmlNode");
+            ModdedModSource mos = (ModdedModSource)__instance;
+            foreach (string k in mos.moddedMods.Keys)
+            {
+                QuickSaver.AddAttribute(doc, modsNode, k, mos.moddedMods[k].value.ToString());
+            }
+        }
+    }
 
+
+    [HarmonyPatch(typeof(ModSource), nameof(ModSource.ReadFromXmlNode))]
+    static class ModSourceReadFromXmlNodePatch
+    {
+        static public void Prefix(ModSource __instance, XmlNode child)
+        {
+            Debug.Log("what the futz ReadFromXmlNode");
+            ModdedModSource mos = (ModdedModSource)__instance;
+            foreach (string k in mos.moddedMods.Keys)
+            {
+                if (mos.moddedMods[k].value is bool)
+                {
+                    mos.moddedMods[k].value = QuickSaver.ParseAttrBool(child, k, (bool)mos.moddedMods[k].defaultValue);
+                }
+            }
+        }
+    }
+}
+
+
+[HarmonyPatch(typeof(GameRulePreset), nameof(GameRulePreset.LoadRulesetFromXML))]
+static class GameRulePresetLoadRulesetFromXMLPatch
+{
+    static public void Prefix(GameRulePreset __instance)
+    {
+        Debug.Log("what the futz LoadRulesetFromXML");
+        ModdedModSource modsa = new ModdedModSource();
+        __instance.mods = modsa;
+        Debug.Log("what the futz LoadRulesetFromXML done?");
+    }
+}
+
+class OverlayInfo : TabletButtonEventDispatcher
+{
+    public string key;
+
+    public void toggle(bool v)
+    {
+        Debug.Log("ovi toggle " + key + " => " + v);
+        var tablOverlay = gameObject.GetComponent<TabletModalOverlay>();
+
+        ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+        if (modins.moddedMods.ContainsKey(key))
+        {
+            modins.moddedMods[key].value = v;
+        }
+        tablOverlay.dataModel.Set<bool>(key, v);
+
+        CustomModdedModifiers.BroadcastRuleChange(key, modins.moddedMods[key]);
+        GameEventManager.SendEvent(new ModifiersChangedEvent(TabletRule.None));
+        tablOverlay.rulesScreen.MarkRulesDirty(true);
+
+        tablOverlay.Close();
+        GameObject.Destroy(this);
+    }
+}
+
+[HarmonyPatch(typeof(TabletButton), nameof(TabletButton.OnAccept))]
+static class TabletButtonOnAcceptCtorPatch
+{
+    static public void Prefix(TabletButton __instance)
+    {
+        var avd = __instance.gameObject.GetComponent<TabletButtonEventDispatcherExtended>();
+        if (avd != null)
+        {
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-            if (modins.moddedMods.ContainsKey(key))
+            if (modins.moddedMods.ContainsKey(avd.key))
             {
-                modins.moddedMods[key].value = v;
-            }
-            tablOverlay.dataModel.Set<bool>(key, v);
-
-            CustomModdedModifiers.BroadcastRuleChange(key, modins.moddedMods[key]);
-            tablOverlay.Close();
-            GameObject.Destroy(this);
-        }
-    }
-
-    [HarmonyPatch(typeof(TabletButton), nameof(TabletButton.OnAccept))]
-    static class TabletButtonOnAcceptCtorPatch
-    {
-        static public void Prefix(TabletButton __instance)
-        {
-            var avd = __instance.gameObject.GetComponent<TabletButtonEventDispatcherExtended>();
-            if (avd != null)
-            {
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                if (modins.moddedMods.ContainsKey(avd.key))
+                var md = modins.moddedMods[avd.key];
+                Debug.Log("Dynamics Stuff " + avd.key);
+                var tbScreen = __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen;
+                __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen.OpenModalOverlay(TabletRule.None);
+                var tablOverlay = tbScreen.tablet.modalOverlay;
+                tablOverlay.Initialize(TabletRule.None, new UnityAction(() =>
                 {
-                    var md = modins.moddedMods[avd.key];
-                    Debug.Log("Dynamics Stuff " + avd.key);
-                    var tbScreen = __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen;
-                    __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen.OpenModalOverlay(TabletRule.None);
-                    var tablOverlay = tbScreen.tablet.modalOverlay;
-                    tablOverlay.Initialize(TabletRule.None, new UnityAction(() =>
-                    {
-                        Debug.Log("close " + avd.key);
-                        tbScreen.tablet.rulesScreen.UpdateButtonValue(TabletRule.None, 0, false);
-                    }));
-                    var ovInfo = tablOverlay.gameObject.GetComponent<OverlayInfo>();
+                    Debug.Log("close " + avd.key);
+                    tbScreen.tablet.rulesScreen.UpdateButtonValue(TabletRule.None, 0, false);
+                }));
+                var ovInfo = tablOverlay.gameObject.GetComponent<OverlayInfo>();
 
-                    if (ovInfo == null)
-                    {
-                        ovInfo = tablOverlay.gameObject.AddComponent<OverlayInfo>();
-                    }
-
-                    ovInfo.key = avd.key;
-
-                    tablOverlay.titleText.text = md.labelText;
-                    tablOverlay.onOffContainer.gameObject.SetActive(true);
-                    tablOverlay.SetOnOffButtonStyles((bool)md.value);
-                    tablOverlay.dataModel.Set<bool>(avd.key, (bool)md.value);
-                }
-            }
-
-            var ovi = __instance.transform.parent.parent.parent.GetComponent<OverlayInfo>();
-            if (ovi && __instance.gameObject.name == "On Button")
-            {
-                ovi.toggle(true);
-            }
-            if (ovi && __instance.gameObject.name == "Off Button")
-            {
-                ovi.toggle(false);
-            }
-
-        }
-    }
-
-    [HarmonyPatch(typeof(TabletRulesScreen), nameof(TabletRulesScreen.UpdateButtonValue))]
-    static class TabletUpdateButtonValuePatch
-    {
-        static void Postfix(TabletRulesScreen __instance, TabletRule overlayType, int buttonIndex, bool textSizeModifier)
-        {
-            var con = __instance.tablet.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
-
-            Debug.Log("UpdateButtonValue");
-
-            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-            foreach (string k in modins.moddedMods.Keys)
-            {
-                var cl = con.transform.Find(k);
-                if (cl != null)
+                if (ovInfo == null)
                 {
-                    cl.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modins.moddedMods[k].value);
-                    __instance.SetLineModified(cl.transform.Find("Text Label").GetComponent<TabletTextLabel>(), (bool)modins.moddedMods[k].value == (bool)modins.moddedMods[k].defaultValue);
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Tablet), nameof(Tablet.Start))]
-    static class TabletStartPatch
-    {
-        static void Postfix(Tablet __instance)
-        {
-            var con = __instance.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
-            Debug.Log("con name: " + con);
-
-            var label = con.Find("Level Effects");
-            Debug.Log("label: " + label);
-            GameObject clonel = GameObject.Instantiate(label.gameObject);
-            clonel.transform.SetParent(con, false);
-
-            if (ChainedChickenMod.isLocalOrModded())
-            {
-                clonel.GetComponent<TabletTextLabel>().text = "Modded";
-
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                foreach (string k in modins.moddedMods.Keys)
-                {
-                    TabletStuff.ModifierEntry(con, k, modins.moddedMods[k]);
+                    ovInfo = tablOverlay.gameObject.AddComponent<OverlayInfo>();
                 }
 
+                ovInfo.key = avd.key;
+
+                tablOverlay.titleText.text = md.labelText;
+                tablOverlay.onOffContainer.gameObject.SetActive(true);
+                tablOverlay.SetOnOffButtonStyles((bool)md.value);
+                tablOverlay.dataModel.Set<bool>(avd.key, (bool)md.value);
             }
-            else
+        }
+
+        var ovi = __instance.transform.parent.parent.parent.GetComponent<OverlayInfo>();
+        if (ovi && __instance.gameObject.name == "On Button")
+        {
+            ovi.toggle(true);
+        }
+        if (ovi && __instance.gameObject.name == "Off Button")
+        {
+            ovi.toggle(false);
+        }
+
+    }
+}
+
+[HarmonyPatch(typeof(TabletRulesScreen), nameof(TabletRulesScreen.UpdateButtonValue))]
+static class TabletUpdateButtonValuePatch
+{
+    static void Postfix(TabletRulesScreen __instance, TabletRule overlayType, int buttonIndex, bool textSizeModifier)
+    {
+        var con = __instance.tablet.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
+
+        Debug.Log("UpdateButtonValue");
+
+        ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+        foreach (string k in modins.moddedMods.Keys)
+        {
+            var cl = con.transform.Find(k);
+            if (cl != null)
             {
-                clonel.GetComponent<TabletTextLabel>().text = "Mods disabled (use MORE)";
+                cl.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modins.moddedMods[k].value);
+                __instance.SetLineModified(cl.transform.Find("Text Label").GetComponent<TabletTextLabel>(), (bool)modins.moddedMods[k].value == (bool)modins.moddedMods[k].defaultValue);
             }
         }
     }
-    class TabletButtonEventDispatcherExtended : TabletButtonEventDispatcher
-    {
-        public string key;
-    }
+}
 
-    class TabletStuff
+[HarmonyPatch(typeof(Tablet), nameof(Tablet.Start))]
+static class TabletStartPatch
+{
+    static void Postfix(Tablet __instance)
     {
-        public static void ModifierEntry(Transform con, string k, ModModMod modModMod)
+        var con = __instance.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
+        Debug.Log("con name: " + con);
+
+        var label = con.Find("Level Effects");
+        Debug.Log("label: " + label);
+        GameObject clonel = GameObject.Instantiate(label.gameObject);
+        clonel.transform.SetParent(con, false);
+
+        if (ChainedChickenMod.isLocalOrModded())
         {
-            var but = con.Find("Dance Invincibility");
-
-            GameObject clone = GameObject.Instantiate(but.gameObject);
-            clone.name = k;
-            clone.transform.SetParent(con, false);
-            var evd = clone.GetComponent<TabletButtonEventDispatcher>();
-            evd.overlayType = TabletRule.None;
-            var avd = clone.AddComponent<TabletButtonEventDispatcherExtended>();
-            avd.key = k;
-
-
-            var tb = clone.GetComponent<TabletButton>();
-            tb.OnClick = null;
-
-            var tlabel = clone.transform.Find("Text Label");
-            tlabel.GetComponent<TabletTextLabel>().text = modModMod.labelText;
-            tlabel.GetComponent<I2.Loc.Localize>().enabled = false;
-            tlabel.GetComponent<LocalizationFontSizeSwitcher>().enabled = false;
-
-            clone.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modModMod.value);
-        }
-
-    }
-
-    [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.GetCurrentModifierListString))]
-    static class ModifiersGetCurrentModifierListStringPatch
-    {
-        static void Postfix(Modifiers __instance, ref string __result)
-        {
-            Debug.Log("GetCurrentModifierListString");
+            clonel.GetComponent<TabletTextLabel>().text = "Modded";
 
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
             foreach (string k in modins.moddedMods.Keys)
             {
-                if ((bool)modins.moddedMods[k].value != (bool)modins.moddedMods[k].defaultValue)
-                {
-                    __result += "\n[modded] " + modins.moddedMods[k].labelText;
-                }
+                TabletStuff.ModifierEntry(con, k, modins.moddedMods[k]);
+            }
+
+        }
+        else
+        {
+            clonel.GetComponent<TabletTextLabel>().text = "Mods disabled (use MORE)";
+        }
+    }
+}
+class TabletButtonEventDispatcherExtended : TabletButtonEventDispatcher
+{
+    public string key;
+}
+
+class TabletStuff
+{
+    public static void ModifierEntry(Transform con, string k, ModModMod modModMod)
+    {
+        var but = con.Find("Dance Invincibility");
+
+        GameObject clone = GameObject.Instantiate(but.gameObject);
+        clone.name = k;
+        clone.transform.SetParent(con, false);
+        var evd = clone.GetComponent<TabletButtonEventDispatcher>();
+        evd.overlayType = TabletRule.None;
+        var avd = clone.AddComponent<TabletButtonEventDispatcherExtended>();
+        avd.key = k;
+
+
+        var tb = clone.GetComponent<TabletButton>();
+        tb.OnClick = null;
+
+        var tlabel = clone.transform.Find("Text Label");
+        tlabel.GetComponent<TabletTextLabel>().text = modModMod.labelText;
+        tlabel.GetComponent<I2.Loc.Localize>().enabled = false;
+        tlabel.GetComponent<LocalizationFontSizeSwitcher>().enabled = false;
+
+        clone.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modModMod.value);
+    }
+
+}
+
+[HarmonyPatch(typeof(Modifiers), nameof(Modifiers.GetCurrentModifierListString))]
+static class ModifiersGetCurrentModifierListStringPatch
+{
+    static void Postfix(Modifiers __instance, ref string __result)
+    {
+        Debug.Log("GetCurrentModifierListString");
+
+        ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+        foreach (string k in modins.moddedMods.Keys)
+        {
+            if ((bool)modins.moddedMods[k].value != (bool)modins.moddedMods[k].defaultValue)
+            {
+                __result += "\n[modded] " + modins.moddedMods[k].labelText;
             }
         }
     }
+}
 }
