@@ -78,6 +78,10 @@
    <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
+    </Reference>   
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(UCHfolder)\UltimateChickenHorse_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
