@@ -195,7 +195,6 @@ namespace ChainedChickenMod.Patches
 
         public new void ReadFromModSettings()
         {
-            Debug.Log("ReadFromModSettings ReadFromModSettings");
             base.ReadFromModSettings();
             ModdedModifiers mos = (ModdedModifiers)Modifiers.GetInstance();
 
@@ -258,8 +257,6 @@ namespace ChainedChickenMod.Patches
                 var mods = __instance;
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
 
-                Debug.Log("what the futz WriteToModSettings: __instance " + mods.GetType() + " Modifiers : " + Modifiers.GetInstance().GetType());
-
                 if (mods.GetType() != typeof(ModdedModSource))
                 {
                     //Write defaults
@@ -317,8 +314,6 @@ namespace ChainedChickenMod.Patches
         {
             static public void Postfix(ModSource __instance, ModSource other, ref bool __result)
             {
-                Debug.Log("what the futz CompareTo");
-
                 if (!__result)
                 {
                     __result = false;
@@ -370,7 +365,6 @@ namespace ChainedChickenMod.Patches
         {
             static public void Prefix(ModSource __instance, XmlDocument doc, XmlElement modsNode)
             {
-                Debug.Log("what the futz WriteToXmlNode: " + __instance.GetType());
                 if (__instance.GetType() == typeof(ModdedModSource))
                 {
                     ModdedModSource mos = (ModdedModSource)__instance;
@@ -388,7 +382,6 @@ namespace ChainedChickenMod.Patches
         {
             static public void Prefix(ModSource __instance, XmlNode child)
             {
-                Debug.Log("what the futz ReadFromXmlNode");
                 ModdedModSource mos = (ModdedModSource)__instance;
                 foreach (string k in mos.moddedMods.Keys)
                 {
@@ -438,10 +431,8 @@ namespace ChainedChickenMod.Patches
     {
         static public void Prefix(GameRulePreset __instance)
         {
-            Debug.Log("what the futz LoadRulesetFromXML");
             ModdedModSource modsa = new ModdedModSource();
             __instance.mods = modsa;
-            Debug.Log("what the futz LoadRulesetFromXML done?");
         }
     }
 
@@ -527,8 +518,6 @@ namespace ChainedChickenMod.Patches
         {
             var con = __instance.tablet.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
 
-            Debug.Log("UpdateButtonValue");
-
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
             foreach (string k in modins.moddedMods.Keys)
             {
@@ -610,8 +599,6 @@ namespace ChainedChickenMod.Patches
     {
         static void Postfix(Modifiers __instance, bool forceModsApplied, ref string __result)
         {
-            Debug.Log("GetCurrentModifierListString");
-
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
             foreach (string k in modins.moddedMods.Keys)
             {
