@@ -5,12 +5,12 @@ using System.Reflection;
 using BepInEx.Configuration;
 using ChainedChickenMod.Patches;
 
-[assembly: AssemblyVersion("0.0.0.1")]
-[assembly: AssemblyInformationalVersion("0.0.0.1")]
+[assembly: AssemblyVersion("0.0.0.2")]
+[assembly: AssemblyInformationalVersion("0.0.0.2")]
 
 namespace ChainedChickenMod
 {
-    [BepInPlugin("ChainedChicken", "ChainedChicken", "0.0.0.1")]
+    [BepInPlugin("ChainedChicken", "ChainedChicken", "0.0.0.2")]
     public class ChainedChickenMod : BaseUnityPlugin
     {
         public static ConfigEntry<int> ChainLength;
