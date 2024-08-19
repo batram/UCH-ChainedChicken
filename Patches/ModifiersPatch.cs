@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Xml;
 using GameEvent;
 using HarmonyLib;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -38,6 +39,19 @@ namespace ChainedChickenMod.Patches
             LobbyManager.instance.client.Send(msgNum, msgGameRuleSet);
         }
 
+        [HarmonyPatch(typeof(LobbyManager), nameof(LobbyManager.Connect))]
+        static class LobbyManagerConnectPatch
+        {
+            static public void Postfix(LobbyManager __instance)
+            {
+                NetworkServer.RegisterHandler(msgNum, new NetworkMessageDelegate(__instance.distributeServerMessage));
+                if (__instance.client != null)
+                {
+                    __instance.client.RegisterHandler(msgNum, new NetworkMessageDelegate(__instance.distributeMessage));
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(LobbyManager), nameof(LobbyManager.readMessage))]
         static class LobbyManagerReadMessagePatch
         {
@@ -64,7 +78,7 @@ namespace ChainedChickenMod.Patches
                     ModdedMsgGameRuleSet msgGameRuleSet = (ModdedMsgGameRuleSet)netw.ReadMessage;
 
                     ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                    modins.moddedMods[msgGameRuleSet.key].value = msgGameRuleSet.mod;
+                    modins.moddedMods[msgGameRuleSet.key] = msgGameRuleSet.mod;
 
                     modins.OnModifiersDynamicChange();
                     __instance.UpdateButtonValue(msgGameRuleSet.NewRule, 0, false);
@@ -78,7 +92,7 @@ namespace ChainedChickenMod.Patches
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(key);
-            json = JsonUtility.ToJson(mod);
+            json = JsonConvert.SerializeObject(mod);
             writer.Write(json);
         }
 
@@ -87,7 +101,7 @@ namespace ChainedChickenMod.Patches
         {
             key = reader.ReadString();
             json = reader.ReadString();
-            mod = JsonUtility.FromJson<ModModMod>(json);
+            mod = JsonConvert.DeserializeObject<ModModMod>(json);
         }
 
         public string key;
@@ -138,7 +152,6 @@ namespace ChainedChickenMod.Patches
 
     public class ModModMod
     {
-
         public System.Object value;
         public System.Object defaultValue;
         public string labelText;
