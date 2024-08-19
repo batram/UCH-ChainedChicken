@@ -1,32 +1,116 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Xml;
-using GameEvent;
 using HarmonyLib;
+using I2.Loc.SimpleJSON;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 
 namespace ChainedChickenMod.Patches
 {
+    public class CustomModdedModifiers
+    {
+        public static short msgNum = (short)(NetMsgTypes.msgCount + 9124);
+        public static Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
+
+        public static Dictionary<String, ModModMod> ModdedMods
+        {
+            get
+            {
+                return moddedMods.ToDictionary(entry => entry.Key,
+                                           entry => entry.Value);
+            }
+        }
+
+        public static void BroadcastRuleChange(string key, ModModMod mod)
+        {
+            ModdedMsgGameRuleSet msgGameRuleSet = new ModdedMsgGameRuleSet();
+            msgGameRuleSet.key = key;
+            msgGameRuleSet.mod = mod;
+            LobbyManager.instance.client.Send(msgNum, msgGameRuleSet);
+        }
+
+        [HarmonyPatch(typeof(LobbyManager), nameof(LobbyManager.readMessage))]
+        static class LobbyManagerReadMessagePatch
+        {
+            static public bool Prefix(LobbyManager __instance, NetworkMessage msg, ref MessageBase __result)
+            {
+                if (msg.msgType == msgNum)
+                {
+                    __result = msg.ReadMessage<ModdedMsgGameRuleSet>();
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(TabletRulesScreen), nameof(TabletRulesScreen.handleEvent))]
+        static class TabletRulesScreenHandleEventPatch
+        {
+            static void Prefix(TabletRulesScreen __instance, GameEvent.GameEvent e)
+            {
+                GameEvent.NetworkMessageReceivedEvent netw = e as GameEvent.NetworkMessageReceivedEvent;
+
+                if (netw.Message.msgType == msgNum)
+                {
+                    ModdedMsgGameRuleSet msgGameRuleSet = (ModdedMsgGameRuleSet)netw.ReadMessage;
+
+                    ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                    modins.moddedMods[msgGameRuleSet.key].value = msgGameRuleSet.mod;
+
+                    modins.OnModifiersDynamicChange();
+                    __instance.UpdateButtonValue(msgGameRuleSet.NewRule, 0, false);
+                }
+            }
+        }
+    }
+
+    public class ModdedMsgGameRuleSet : MsgGameRuleSet
+    {
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(key);
+            json = JsonUtility.ToJson(mod);
+            writer.Write(json);
+        }
+
+        // Token: 0x06000F68 RID: 3944 RVA: 0x0004937A File Offset: 0x0004757A
+        public override void Deserialize(NetworkReader reader)
+        {
+            key = reader.ReadString();
+            json = reader.ReadString();
+            mod = JsonUtility.FromJson<ModModMod>(json);
+        }
+
+        public string key;
+        public string json;
+        public ModModMod mod;
+    }
+
     public class ModdedModifiers : Modifiers
     {
         static public bool modded = true;
 
         public Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
 
-        public static new ModSource DefaultModSource
+        public ModdedModifiers()
         {
-            get
+            moddedMods = CustomModdedModifiers.ModdedMods;
+        }
+
+        [HarmonyPatch(typeof(Modifiers), "get_DefaultModSource")]
+        static class ModifiersGetDefaultModSourcePatch
+        {
+            static public bool Prefix(out ModSource __result)
             {
                 if (Modifiers.defaultModSource == null)
                 {
-                    ModdedModSource modsa = new ModdedModSource();
-                    modsa.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
-                    Modifiers.defaultModSource = modsa;
+                    Modifiers.defaultModSource = new ModdedModSource();
                 }
-                return Modifiers.defaultModSource;
+                __result = Modifiers.defaultModSource;
+                return false;
             }
         }
 
@@ -37,17 +121,13 @@ namespace ChainedChickenMod.Patches
             {
                 if (Modifiers.instance == null)
                 {
-                    Modifiers bas = Resources.Load("ModifierSettings") as Modifiers;
-                    ModdedModifiers modsa = ScriptableObject.CreateInstance<ModdedModifiers>();
-                    modsa.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
-                    Modifiers.instance = modsa;
+                    Modifiers.instance = ScriptableObject.CreateInstance<ModdedModifiers>();
                 }
 
                 __result = Modifiers.instance;
                 return false;
             }
         }
-
     }
 
     public class ModModMod
@@ -63,7 +143,6 @@ namespace ChainedChickenMod.Patches
             this.defaultValue = defaultValue;
             this.labelText = labelText;
         }
-
     }
 
     public class ModdedModSource : ModSource
@@ -72,6 +151,10 @@ namespace ChainedChickenMod.Patches
 
         public Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
 
+        public ModdedModSource()
+        {
+            moddedMods = CustomModdedModifiers.ModdedMods;
+        }
 
         [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToModSettings))]
         static class ModSourceWriteToModSettingsPatch
@@ -203,7 +286,6 @@ namespace ChainedChickenMod.Patches
         {
             Debug.Log("what the futz LoadRulesetFromXML");
             ModdedModSource modsa = new ModdedModSource();
-            modsa.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
             __instance.mods = modsa;
         }
     }
@@ -224,7 +306,7 @@ namespace ChainedChickenMod.Patches
             }
             tablOverlay.dataModel.Set<bool>(key, v);
 
-            TabletModalOverlay.BroadcastRuleChange(TabletRule.ModifierWallSlidesDisabled, 0, 0, v);
+            CustomModdedModifiers.BroadcastRuleChange(key, modins.moddedMods[key]);
             tablOverlay.Close();
             GameObject.Destroy(this);
         }
@@ -299,8 +381,6 @@ namespace ChainedChickenMod.Patches
                     __instance.SetLineModified(cl.transform.Find("Text Label").GetComponent<TabletTextLabel>(), (bool)modins.moddedMods[k].value == (bool)modins.moddedMods[k].defaultValue);
                 }
             }
-
-            Chain.chainPlayersInLobby();
         }
     }
 
@@ -365,28 +445,6 @@ namespace ChainedChickenMod.Patches
             clone.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modModMod.value);
         }
 
-    }
-
-
-    [HarmonyPatch(typeof(TabletRulesScreen), nameof(TabletRulesScreen.handleEvent))]
-    static class TabletRulesScreenHandleEventPatch
-    {
-        static void Prefix(TabletRulesScreen __instance, GameEvent.GameEvent e)
-        {
-            GameEvent.NetworkMessageReceivedEvent netw = e as GameEvent.NetworkMessageReceivedEvent;
-
-            if (netw.Message.msgType == NetMsgTypes.GameRuleSet)
-            {
-                MsgGameRuleSet msgGameRuleSet = (MsgGameRuleSet)netw.ReadMessage;
-
-                if (msgGameRuleSet.NewRule == TabletRule.ModifierWallSlidesDisabled)
-                {
-                    //TODO: generalize, send own msg
-                    ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                    modins.moddedMods["ChainPlayers"].value = msgGameRuleSet.Valueb;
-                }
-            }
-        }
     }
 
     [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.GetCurrentModifierListString))]

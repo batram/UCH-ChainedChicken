@@ -27,6 +27,8 @@ namespace ChainedChickenMod
 
             //Enabled = Config.Bind("General", "Enabled", true);
             ChainLength = Config.Bind("General", "ChainLength", 10, "Length of the chain");
+
+            CustomModdedModifiers.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
         }
 
 
