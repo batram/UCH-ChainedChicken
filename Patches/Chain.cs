@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Xml;
@@ -15,9 +16,9 @@ namespace ChainedChickenMod.Patches
         public static Texture2D Tex2D;
         public static List<GameObject> gl = new List<GameObject>();
 
-        public static void chainPlayersInLobby()
+        public static void chainPlayersInTreehouse()
         {
-            if (ChainedChickenMod.isLocalOrModded())
+            if (ChainedChickenMod.isLocalOrModded() && Matchmaker.InTreehouse)
             {
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
 
@@ -38,26 +39,6 @@ namespace ChainedChickenMod.Patches
                 {
                     Chain.clearChain(clist);
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.OnModifiersDynamicChange))]
-        static class ModifiersOnModifiersDynamicChangePatch
-        {
-            static public void Prefix(Modifiers __instance)
-            {
-                Debug.Log("OnModifiersDynamicChange ");
-                Chain.chainPlayersInLobby();
-            }
-        }
-
-        [HarmonyPatch(typeof(LobbyPlayer), nameof(LobbyPlayer.RpcRequestPickResponse))]
-        static class LobbyPlayerRpcRequestPickResponsePatch
-        {
-            static public void Postfix(Modifiers __instance)
-            {
-                Debug.Log("OnModifiersDynamicChange ");
-                Chain.chainPlayersInLobby();
             }
         }
 
@@ -174,6 +155,22 @@ namespace ChainedChickenMod.Patches
             for (var i = 0; i < clist.Count - 1; i++)
             {
                 chainChars(ChainedChickenMod.ChainLength.Value, clist[i], clist[i + 1]);
+            }
+        }
+
+        [HarmonyPatch]
+        static class ChainUpInLobby
+        {
+            static IEnumerable<MethodBase> TargetMethods()
+            {
+                yield return AccessTools.Method(typeof(Modifiers), nameof(Modifiers.GetCurrentModifierListString));
+                yield return AccessTools.Method(typeof(Modifiers), nameof(Modifiers.OnModifiersDynamicChange));
+                yield return AccessTools.Method(typeof(LobbyPlayer), nameof(LobbyPlayer.RpcRequestPickResponse));
+            }
+
+            static public void Prefix()
+            {
+                Chain.chainPlayersInTreehouse();
             }
         }
 
