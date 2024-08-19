@@ -77,7 +77,7 @@ namespace ChainedChickenMod.Patches
                 {
                     ModdedMsgGameRuleSet msgGameRuleSet = (ModdedMsgGameRuleSet)netw.ReadMessage;
 
-                    ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                    ModdedModifiers modins = ModdedModifiers.GetWinstance();
                     modins.moddedMods[msgGameRuleSet.key] = msgGameRuleSet.mod;
 
                     modins.OnModifiersDynamicChange();
@@ -114,6 +114,8 @@ namespace ChainedChickenMod.Patches
         static public bool modded = true;
 
         public Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
+        private static ModdedModifiers winstance;
+
 
         public ModdedModifiers()
         {
@@ -134,19 +136,17 @@ namespace ChainedChickenMod.Patches
             }
         }
 
-        [HarmonyPatch(typeof(Modifiers), nameof(Modifiers.GetInstance))]
-        static class ModifiersGetInstancePatch
-        {
-            static public bool Prefix(out Modifiers __result)
-            {
-                if (Modifiers.instance == null)
-                {
-                    Modifiers.instance = ScriptableObject.CreateInstance<ModdedModifiers>();
-                }
 
-                __result = Modifiers.instance;
-                return false;
+        static public ModdedModifiers GetWinstance()
+        {
+            if (ModdedModifiers.winstance == null)
+            {
+                
+                ModdedModifiers.winstance = ScriptableObject.CreateInstance<ModdedModifiers>();
+
             }
+
+            return ModdedModifiers.winstance;
         }
     }
 
@@ -196,7 +196,7 @@ namespace ChainedChickenMod.Patches
         public new void ReadFromModSettings()
         {
             base.ReadFromModSettings();
-            ModdedModifiers mos = (ModdedModifiers)Modifiers.GetInstance();
+            ModdedModifiers mos = ModdedModifiers.GetWinstance();
 
             foreach (string k in mos.moddedMods.Keys)
             {
@@ -219,7 +219,7 @@ namespace ChainedChickenMod.Patches
                 if (__instance.GetType() == typeof(ModdedModSource))
                 {
                     var ds = (ModdedModSource)__instance;
-                    ModdedModifiers mos = (ModdedModifiers)Modifiers.GetInstance();
+                    ModdedModifiers mos = ModdedModifiers.GetWinstance();
 
                     foreach (string k in mos.moddedMods.Keys)
                     {
@@ -255,7 +255,7 @@ namespace ChainedChickenMod.Patches
             static public void Postfix(ModSource __instance, bool includeTreehouseSettings)
             {
                 var mods = __instance;
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();
 
                 if (mods.GetType() != typeof(ModdedModSource))
                 {
@@ -291,12 +291,12 @@ namespace ChainedChickenMod.Patches
                     __result = false;
                 }
 
-                if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
+                if (__instance.GetType() != typeof(ModdedModSource))
                 {
                     return;
                 }
                 ModdedModSource mos = (ModdedModSource)__instance;
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();
                 foreach (string k in mos.moddedMods.Keys)
                 {
                     if (!modins.moddedMods.ContainsKey(k) || mos.moddedMods[k].value != modins.moddedMods[k].value)
@@ -345,7 +345,7 @@ namespace ChainedChickenMod.Patches
 
                 ModdedModSource mos = (ModdedModSource)__instance.mods;
 
-                ModdedModifiers instanceModdedModifiers = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers instanceModdedModifiers = ModdedModifiers.GetWinstance();
                 foreach (string k in instanceModdedModifiers.moddedMods.Keys)
                 {
                     if (!mos.moddedMods.ContainsKey(k))
@@ -445,7 +445,7 @@ namespace ChainedChickenMod.Patches
             Debug.Log("ovi toggle " + key + " => " + v);
             var tablOverlay = gameObject.GetComponent<TabletModalOverlay>();
 
-            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+            ModdedModifiers modins = ModdedModifiers.GetWinstance();
             if (modins.moddedMods.ContainsKey(key))
             {
                 modins.moddedMods[key].value = v;
@@ -469,7 +469,7 @@ namespace ChainedChickenMod.Patches
             var avd = __instance.gameObject.GetComponent<TabletButtonEventDispatcherExtended>();
             if (avd != null)
             {
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();
                 if (modins.moddedMods.ContainsKey(avd.key))
                 {
                     var md = modins.moddedMods[avd.key];
@@ -518,7 +518,7 @@ namespace ChainedChickenMod.Patches
         {
             var con = __instance.tablet.modifiersContainer.gameObject.transform.Find("Border/Modifiers BG/ScrollHolder/ItemContainer");
 
-            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+            ModdedModifiers modins = ModdedModifiers.GetWinstance();
             foreach (string k in modins.moddedMods.Keys)
             {
                 var cl = con.transform.Find(k);
@@ -548,7 +548,7 @@ namespace ChainedChickenMod.Patches
             {
                 clonel.GetComponent<TabletTextLabel>().text = "Modded";
 
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();
                 foreach (string k in modins.moddedMods.Keys)
                 {
                     TabletStuff.ModifierEntry(con, k, modins.moddedMods[k]);
@@ -599,7 +599,7 @@ namespace ChainedChickenMod.Patches
     {
         static void Postfix(Modifiers __instance, bool forceModsApplied, ref string __result)
         {
-            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+            ModdedModifiers modins = ModdedModifiers.GetWinstance();
             foreach (string k in modins.moddedMods.Keys)
             {
                 if ((bool)modins.moddedMods[k].value != (bool)modins.moddedMods[k].defaultValue)

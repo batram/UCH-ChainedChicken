@@ -20,7 +20,7 @@ namespace ChainedChickenMod.Patches
         {
             if (ChainedChickenMod.isLocalOrModded() && Matchmaker.InTreehouse)
             {
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();;
 
                 List<Character> clist = new List<Character>();
                 foreach (LobbyPlayer gamePlayer in LobbyManager.instance.GetLobbyPlayers())
@@ -181,7 +181,7 @@ namespace ChainedChickenMod.Patches
             {
                 if (ChainedChickenMod.isLocalOrModded())
                 {
-                    ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+                    ModdedModifiers modins = ModdedModifiers.GetWinstance();;
 
                     if (modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
                     {
