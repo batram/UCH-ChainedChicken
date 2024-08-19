@@ -10,15 +10,17 @@ using UnityEngine.Events;
 
 namespace ChainedChickenMod.Patches
 {
-    public class Chain {
+    public class Chain
+    {
         public static Texture2D Tex2D;
         public static List<GameObject> gl = new List<GameObject>();
 
-        public static void chainPlayersInLobby(){
-            if(ChainedChickenMod.isLocalOrModded())
+        public static void chainPlayersInLobby()
+        {
+            if (ChainedChickenMod.isLocalOrModded())
             {
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                
+
                 List<Character> clist = new List<Character>();
                 foreach (LobbyPlayer gamePlayer in LobbyManager.instance.GetLobbyPlayers())
                 {
@@ -28,10 +30,12 @@ namespace ChainedChickenMod.Patches
                     }
                 }
 
-                if(Modifiers.GetInstance().modsPreview && modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
+                if (Modifiers.GetInstance().modsPreview && modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
                 {
                     Chain.chainPlayers(clist);
-                } else {
+                }
+                else
+                {
                     Chain.clearChain(clist);
                 }
             }
@@ -64,7 +68,7 @@ namespace ChainedChickenMod.Patches
                 return Tex2D;
             }
 
-            var assembly =  typeof(ChainedChickenMod).Assembly;
+            var assembly = typeof(ChainedChickenMod).Assembly;
             var resourceStream = assembly.GetManifestResourceStream("ChainedChicken.link.png");
 
             if (resourceStream != null)
@@ -72,9 +76,9 @@ namespace ChainedChickenMod.Patches
                 byte[] linkData = new byte[resourceStream.Length];
                 resourceStream.Read(linkData, 0, linkData.Length);
 
-                Tex2D = new Texture2D(2, 2);          
-                if (Tex2D.LoadImage(linkData))          
-                    return Tex2D;             
+                Tex2D = new Texture2D(2, 2);
+                if (Tex2D.LoadImage(linkData))
+                    return Tex2D;
             }
 
             return null;
@@ -105,7 +109,7 @@ namespace ChainedChickenMod.Patches
             dis.autoConfigureDistance = false;
             dis.connectedBody = char2.gameObject.GetComponent<Rigidbody2D>();
             dis.connectedAnchor = new Vector2(0, 0);
-            dis.distance = length  / 2;
+            dis.distance = length / 2;
         }
 
         static GameObject addLink(GameObject go, int offset)
@@ -145,7 +149,7 @@ namespace ChainedChickenMod.Patches
 
         public static void clearChain(List<Character> clist)
         {
-            foreach(GameObject go in gl)
+            foreach (GameObject go in gl)
             {
                 GameObject.Destroy(go);
             }
@@ -167,7 +171,7 @@ namespace ChainedChickenMod.Patches
 
             Debug.Log("clist.Count " + clist.Count);
 
-            for(var i = 0; i < clist.Count - 1; i++)
+            for (var i = 0; i < clist.Count - 1; i++)
             {
                 chainChars(ChainedChickenMod.ChainLength.Value, clist[i], clist[i + 1]);
             }
@@ -178,11 +182,11 @@ namespace ChainedChickenMod.Patches
         {
             static void Postfix(GameControl __instance)
             {
-                if(ChainedChickenMod.isLocalOrModded())
+                if (ChainedChickenMod.isLocalOrModded())
                 {
                     ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                    
-                    if(modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
+
+                    if (modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
                     {
                         List<Character> clist = new List<Character>();
                         foreach (GamePlayer gamePlayer in __instance.PlayerQueue)

@@ -10,7 +10,8 @@ using UnityEngine.Events;
 
 namespace ChainedChickenMod.Patches
 {
-    public class ModdedModifiers : Modifiers {
+    public class ModdedModifiers : Modifiers
+    {
         static public bool modded = true;
 
         public Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
@@ -45,17 +46,19 @@ namespace ChainedChickenMod.Patches
                 __result = Modifiers.instance;
                 return false;
             }
-        }       
+        }
 
     }
 
-    public class ModModMod {
+    public class ModModMod
+    {
 
-        public System.Object value; 
+        public System.Object value;
         public System.Object defaultValue;
         public string labelText;
 
-        public ModModMod(System.Object value, System.Object defaultValue, string labelText){
+        public ModModMod(System.Object value, System.Object defaultValue, string labelText)
+        {
             this.value = value;
             this.defaultValue = defaultValue;
             this.labelText = labelText;
@@ -63,19 +66,21 @@ namespace ChainedChickenMod.Patches
 
     }
 
-    public class ModdedModSource : ModSource {
+    public class ModdedModSource : ModSource
+    {
         static public bool modded = true;
 
         public Dictionary<String, ModModMod> moddedMods = new Dictionary<String, ModModMod>();
 
-        
+
         [HarmonyPatch(typeof(ModSource), nameof(ModSource.WriteToModSettings))]
         static class ModSourceWriteToModSettingsPatch
         {
             static public void Postfix(ModSource __instance, bool includeTreehouseSettings)
             {
 
-                if(__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers)){
+                if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
+                {
                     return;
                 }
                 Debug.Log("what the futz WriteToModSettings: __instance " + __instance.GetType() + " Modifiers : " + Modifiers.GetInstance().GetType());
@@ -83,14 +88,18 @@ namespace ChainedChickenMod.Patches
 
                 ModdedModSource mos = (ModdedModSource)__instance;
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-              
-                foreach(string k in mos.moddedMods.Keys){
-                    if(!modins.moddedMods.ContainsKey(k)){
+
+                foreach (string k in mos.moddedMods.Keys)
+                {
+                    if (!modins.moddedMods.ContainsKey(k))
+                    {
                         modins.moddedMods.Add(k, mos.moddedMods[k]);
-                    } else {
+                    }
+                    else
+                    {
                         modins.moddedMods[k] = mos.moddedMods[k];
                     }
-                }    
+                }
             }
         }
 
@@ -99,13 +108,15 @@ namespace ChainedChickenMod.Patches
         static class ModSourceIsCurrentlyAppliedPatch
         {
             static public void Postfix(ModSource __instance, ref bool __result)
-            {   
+            {
 
-                if(!__result){
-                    __result =  false;
+                if (!__result)
+                {
+                    __result = false;
                 }
 
-                if(__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers)){
+                if (__instance.GetType() != typeof(ModdedModSource) || Modifiers.GetInstance().GetType() != typeof(ModdedModifiers))
+                {
                     return;
                 }
                 Debug.Log("what the futz IsCurrentlyApplied");
@@ -114,12 +125,14 @@ namespace ChainedChickenMod.Patches
 
                 ModdedModSource mos = (ModdedModSource)__instance;
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                foreach(string k in mos.moddedMods.Keys){
-                    if(!modins.moddedMods.ContainsKey(k) || mos.moddedMods[k].value != modins.moddedMods[k].value){
-                        __result =  false;
+                foreach (string k in mos.moddedMods.Keys)
+                {
+                    if (!modins.moddedMods.ContainsKey(k) || mos.moddedMods[k].value != modins.moddedMods[k].value)
+                    {
+                        __result = false;
                     }
                 }
-                    
+
                 __result = true;
             }
         }
@@ -131,17 +144,20 @@ namespace ChainedChickenMod.Patches
             {
                 Debug.Log("what the futz CompareTo");
 
-                if(!__result){
-                    __result =  false;
+                if (!__result)
+                {
+                    __result = false;
                 }
                 ModdedModSource mos = (ModdedModSource)__instance;
-        
-                foreach(string k in mos.moddedMods.Keys){
-                    if(!((ModdedModSource)other).moddedMods.ContainsKey(k) || (bool)mos.moddedMods[k].value != (bool)((ModdedModSource)other).moddedMods[k].value){
-                        __result =  false;
+
+                foreach (string k in mos.moddedMods.Keys)
+                {
+                    if (!((ModdedModSource)other).moddedMods.ContainsKey(k) || (bool)mos.moddedMods[k].value != (bool)((ModdedModSource)other).moddedMods[k].value)
+                    {
+                        __result = false;
                     }
                 }
-                    
+
                 __result = true;
             }
         }
@@ -153,8 +169,9 @@ namespace ChainedChickenMod.Patches
             {
                 Debug.Log("what the futz WriteToXmlNode");
                 ModdedModSource mos = (ModdedModSource)__instance;
-                foreach(string k in mos.moddedMods.Keys){
-                    QuickSaver.AddAttribute(doc, modsNode, k,  mos.moddedMods[k].value.ToString());
+                foreach (string k in mos.moddedMods.Keys)
+                {
+                    QuickSaver.AddAttribute(doc, modsNode, k, mos.moddedMods[k].value.ToString());
                 }
             }
         }
@@ -167,8 +184,10 @@ namespace ChainedChickenMod.Patches
             {
                 Debug.Log("what the futz ReadFromXmlNode");
                 ModdedModSource mos = (ModdedModSource)__instance;
-                foreach(string k in mos.moddedMods.Keys){
-                    if(mos.moddedMods[k].value is bool){
+                foreach (string k in mos.moddedMods.Keys)
+                {
+                    if (mos.moddedMods[k].value is bool)
+                    {
                         mos.moddedMods[k].value = QuickSaver.ParseAttrBool(child, k, (bool)mos.moddedMods[k].defaultValue);
                     }
                 }
@@ -195,18 +214,19 @@ namespace ChainedChickenMod.Patches
 
         public void toggle(bool v)
         {
-                Debug.Log("ovi toggle " + key + " => " + v);
-                var tablOverlay = gameObject.GetComponent<TabletModalOverlay>();
+            Debug.Log("ovi toggle " + key + " => " + v);
+            var tablOverlay = gameObject.GetComponent<TabletModalOverlay>();
 
-                ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                if(modins.moddedMods.ContainsKey(key)){
-                    modins.moddedMods[key].value = v;
-                }
-                tablOverlay.dataModel.Set<bool>(key, v);
+            ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
+            if (modins.moddedMods.ContainsKey(key))
+            {
+                modins.moddedMods[key].value = v;
+            }
+            tablOverlay.dataModel.Set<bool>(key, v);
 
-                TabletModalOverlay.BroadcastRuleChange(TabletRule.ModifierWallSlidesDisabled, 0, 0, v);
-                tablOverlay.Close();
-                GameObject.Destroy(this);
+            TabletModalOverlay.BroadcastRuleChange(TabletRule.ModifierWallSlidesDisabled, 0, 0, v);
+            tablOverlay.Close();
+            GameObject.Destroy(this);
         }
     }
 
@@ -214,23 +234,27 @@ namespace ChainedChickenMod.Patches
     static class TabletButtonOnAcceptCtorPatch
     {
         static public void Prefix(TabletButton __instance)
-        {   
+        {
             var avd = __instance.gameObject.GetComponent<TabletButtonEventDispatcherExtended>();
-            if(avd != null){
+            if (avd != null)
+            {
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                if(modins.moddedMods.ContainsKey(avd.key)){
+                if (modins.moddedMods.ContainsKey(avd.key))
+                {
                     var md = modins.moddedMods[avd.key];
                     Debug.Log("Dynamics Stuff " + avd.key);
                     var tbScreen = __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen;
                     __instance.GetComponent<TabletButtonEventDispatcher>().tabletScreen.OpenModalOverlay(TabletRule.None);
                     var tablOverlay = tbScreen.tablet.modalOverlay;
-                    tablOverlay.Initialize(TabletRule.None, new UnityAction( () => {
+                    tablOverlay.Initialize(TabletRule.None, new UnityAction(() =>
+                    {
                         Debug.Log("close " + avd.key);
                         tbScreen.tablet.rulesScreen.UpdateButtonValue(TabletRule.None, 0, false);
                     }));
                     var ovInfo = tablOverlay.gameObject.GetComponent<OverlayInfo>();
 
-                    if(ovInfo == null){
+                    if (ovInfo == null)
+                    {
                         ovInfo = tablOverlay.gameObject.AddComponent<OverlayInfo>();
                     }
 
@@ -238,8 +262,8 @@ namespace ChainedChickenMod.Patches
 
                     tablOverlay.titleText.text = md.labelText;
                     tablOverlay.onOffContainer.gameObject.SetActive(true);
-                    tablOverlay.SetOnOffButtonStyles((bool) md.value);
-                    tablOverlay.dataModel.Set<bool>(avd.key, (bool) md.value);
+                    tablOverlay.SetOnOffButtonStyles((bool)md.value);
+                    tablOverlay.dataModel.Set<bool>(avd.key, (bool)md.value);
                 }
             }
 
@@ -255,7 +279,7 @@ namespace ChainedChickenMod.Patches
 
         }
     }
-    
+
     [HarmonyPatch(typeof(TabletRulesScreen), nameof(TabletRulesScreen.UpdateButtonValue))]
     static class TabletUpdateButtonValuePatch
     {
@@ -266,9 +290,11 @@ namespace ChainedChickenMod.Patches
             Debug.Log("UpdateButtonValue");
 
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-            foreach(string k in modins.moddedMods.Keys){
+            foreach (string k in modins.moddedMods.Keys)
+            {
                 var cl = con.transform.Find(k);
-                if(cl != null){
+                if (cl != null)
+                {
                     cl.transform.Find("ValueMod").GetComponent<TabletTextLabel>().text = Modifiers.GetOnOffValueString((bool)modins.moddedMods[k].value);
                     __instance.SetLineModified(cl.transform.Find("Text Label").GetComponent<TabletTextLabel>(), (bool)modins.moddedMods[k].value == (bool)modins.moddedMods[k].defaultValue);
                 }
@@ -277,7 +303,7 @@ namespace ChainedChickenMod.Patches
             Chain.chainPlayersInLobby();
         }
     }
-    
+
     [HarmonyPatch(typeof(Tablet), nameof(Tablet.Start))]
     static class TabletStartPatch
     {
@@ -296,22 +322,25 @@ namespace ChainedChickenMod.Patches
                 clonel.GetComponent<TabletTextLabel>().text = "Modded";
 
                 ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-                foreach(string k in modins.moddedMods.Keys){
+                foreach (string k in modins.moddedMods.Keys)
+                {
                     TabletStuff.ModifierEntry(con, k, modins.moddedMods[k]);
                 }
-               
-            } 
+
+            }
             else
             {
                 clonel.GetComponent<TabletTextLabel>().text = "Mods disabled (use MORE)";
             }
         }
     }
-    class TabletButtonEventDispatcherExtended : TabletButtonEventDispatcher {
+    class TabletButtonEventDispatcherExtended : TabletButtonEventDispatcher
+    {
         public string key;
     }
 
-    class TabletStuff {
+    class TabletStuff
+    {
         public static void ModifierEntry(Transform con, string k, ModModMod modModMod)
         {
             var but = con.Find("Dance Invincibility");
@@ -350,7 +379,8 @@ namespace ChainedChickenMod.Patches
             {
                 MsgGameRuleSet msgGameRuleSet = (MsgGameRuleSet)netw.ReadMessage;
 
-                if(msgGameRuleSet.NewRule == TabletRule.ModifierWallSlidesDisabled) {
+                if (msgGameRuleSet.NewRule == TabletRule.ModifierWallSlidesDisabled)
+                {
                     //TODO: generalize, send own msg
                     ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
                     modins.moddedMods["ChainPlayers"].value = msgGameRuleSet.Valueb;
@@ -367,8 +397,10 @@ namespace ChainedChickenMod.Patches
             Debug.Log("GetCurrentModifierListString");
 
             ModdedModifiers modins = (ModdedModifiers)Modifiers.GetInstance();
-            foreach(string k in modins.moddedMods.Keys){
-                if((bool) modins.moddedMods[k].value != (bool) modins.moddedMods[k].defaultValue){
+            foreach (string k in modins.moddedMods.Keys)
+            {
+                if ((bool)modins.moddedMods[k].value != (bool)modins.moddedMods[k].defaultValue)
+                {
                     __result += "\n[modded] " + modins.moddedMods[k].labelText;
                 }
             }
