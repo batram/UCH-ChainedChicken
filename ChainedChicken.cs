@@ -3,11 +3,6 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using BepInEx.Configuration;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-using GameEvent;
 using ChainedChickenMod.Patches;
 
 [assembly: AssemblyVersion("0.0.0.1")]
