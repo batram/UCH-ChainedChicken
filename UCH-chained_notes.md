@@ -1,33 +1,37 @@
-Chain Teams
- - separately chain players [1 to 2, 3 to 4, ...]
+TODO/IDEAS:
+  Let host set chain length
+   - sync via network
 
-Modifier menu
-  - custom buttons and code
+  Chain Teams
+  - separately chain players [1 to 2, 3 to 4, ...]
 
-Wrap up chains in one GameObject
+  Modifier menu
+    - custom buttons and code
 
-Play with gravity/mass of players/dead bodies
- - so jumps are easier
- - simpler to drag dead body along
+  Wrap up chains in one GameObject
 
-Apply a/more force through the chain
+  Play with gravity/mass of players/dead bodies
+  - so jumps are easier
+  - simpler to drag dead body along
 
-Ability to pull on the chain
- - pull while dancing?
- - just shorten the chain or apply force
+  Apply a/more force through the chain
 
-Traps 
- - teleport
-   - teleport all player at once
- - cannon?
-   - add more umpf to player not in cannon
- - blackhole
-   - suck chain in?
-   - chance for player to break chain, if comrade is sucked in?
-   - or spit the dead body out
-   
-Collision enabled weirdness
- - players can walk through each other
+  Ability to pull on the chain
+  - pull while dancing?
+  - just shorten the chain or apply force
+
+  Traps 
+  - teleport
+    - teleport all player at once
+  - cannon?
+    - add more umpf to player not in cannon
+  - blackhole
+    - suck chain in?
+    - chance for player to break chain, if comrade is sucked in?
+    - or spit the dead body out
+    
+  Collision enabled weirdness
+  - players can walk through each other
 
 done:
   Preview in Treehouse
