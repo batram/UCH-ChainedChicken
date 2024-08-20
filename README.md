@@ -20,7 +20,7 @@ They only work in a local or [EvenMorePlayers](https://github.com/batram/UCH-Eve
 Run game! (Linux users need an additional step, follow instructions in BepInEx)
 
 ## Help
-If you have questions, comments or suggestions join the [UCH Mods discord](https://discord.gg/GgzDQW6zbq)
+If you have questions, comments or suggestions join the [UCH Mods discord](https://discord.gg/DACBGXVww7)
 
 
 ## Build with dotnet
