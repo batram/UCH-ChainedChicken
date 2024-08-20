@@ -96,7 +96,6 @@ namespace ChainedChickenMod.Patches
             writer.Write(json);
         }
 
-        // Token: 0x06000F68 RID: 3944 RVA: 0x0004937A File Offset: 0x0004757A
         public override void Deserialize(NetworkReader reader)
         {
             key = reader.ReadString();
