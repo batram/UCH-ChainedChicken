@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -20,7 +21,7 @@ namespace ChainedChickenMod.Patches
         {
             if (ChainedChickenMod.isLocalOrModded() && Matchmaker.InTreehouse)
             {
-                ModdedModifiers modins = ModdedModifiers.GetWinstance();;
+                ModdedModifiers modins = ModdedModifiers.GetWinstance();
 
                 List<Character> clist = new List<Character>();
                 foreach (LobbyPlayer gamePlayer in LobbyManager.instance.GetLobbyPlayers())
@@ -144,6 +145,11 @@ namespace ChainedChickenMod.Patches
                 }
             }
         }
+        public static IEnumerator chainLater(float sec, List<Character> clist)
+        {
+            yield return new WaitForSeconds(sec);
+            chainPlayers(clist);
+        }
 
         public static void chainPlayers(List<Character> clist)
         {
@@ -174,14 +180,57 @@ namespace ChainedChickenMod.Patches
             }
         }
 
+        [HarmonyPatch(typeof(Character), nameof(Character.PositionCharacter))]
+        static class CharacterPatch
+        {
+            static void Prefix(Character __instance)
+            {
+                //Disable chain
+                var disj = __instance.gameObject.GetComponent<DistanceJoint2D>();
+                if (disj != null)
+                {
+                    disj.enabled = false;
+                }
+            }
+            public static IEnumerator enableLater(float sec, DistanceJoint2D disj)
+            {
+                yield return new WaitForSeconds(sec);
+                disj.enabled = true;
+            }
+
+            static void Postfix(Character __instance)
+            {
+
+                //Enable chain
+                var disj = __instance.gameObject.GetComponent<DistanceJoint2D>();
+                if (disj != null)
+                {
+                    __instance.StartCoroutine(enableLater(0.3f, disj));
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(GameControl), nameof(GameControl.ToPlayMode))]
         static class GameControlToPlayModePatch
         {
+            static void Prefix(GameControl __instance)
+            {
+                List<Character> clist = new List<Character>();
+                foreach (GamePlayer gamePlayer in __instance.PlayerQueue)
+                {
+                    if (gamePlayer != null && gamePlayer.CharacterInstance != null)
+                    {
+                        clist.Add(gamePlayer.CharacterInstance);
+                    }
+                }
+                clearChain(clist);
+            }
+
             static void Postfix(GameControl __instance)
             {
                 if (ChainedChickenMod.isLocalOrModded())
                 {
-                    ModdedModifiers modins = ModdedModifiers.GetWinstance();;
+                    ModdedModifiers modins = ModdedModifiers.GetWinstance(); ;
 
                     if (modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
                     {
@@ -193,8 +242,9 @@ namespace ChainedChickenMod.Patches
                                 clist.Add(gamePlayer.CharacterInstance);
                             }
                         }
+                        clearChain(clist);
 
-                        chainPlayers(clist);
+                        __instance.StartCoroutine(chainLater(0.3f, clist));
                     }
                 }
             }
