@@ -46,8 +46,6 @@ namespace ChainedChickenMod.Patches
                         rb.AddForce(dir * new Vector2(f * Time.deltaTime, f * Time.deltaTime), close ? ForceMode2D.Force : ForceMode2D.Impulse);
                     }
                 }
-
-
             }
 
             void Update()
@@ -58,11 +56,8 @@ namespace ChainedChickenMod.Patches
                     {
                         dj.distance -= 2f * Time.deltaTime;
 
-                        Debug.Log("Force ??? 3");
-
                         if (ch1.dancing)
                         {
-                            Debug.Log("Force");
                             applyForce(ch2.gameObject, ch1.gameObject, chPullForce);
 
                             foreach (GameObject o in links)
@@ -73,8 +68,6 @@ namespace ChainedChickenMod.Patches
 
                         if (ch2.dancing)
                         {
-                            Debug.Log("Force2");
-
                             applyForce(ch1.gameObject, ch2.gameObject, chPullForce);
                             foreach (GameObject o in links)
                             {
