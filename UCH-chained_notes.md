@@ -1,24 +1,16 @@
 TODO/IDEAS:
-  Let host set chain length
-   - sync via network
+  CustomModdedModifiers
+   - add modname and version to key
 
   Chain Teams
   - separately chain players [1 to 2, 3 to 4, ...]
-
-  Modifier menu
-    - custom buttons and code
-
-  Wrap up chains in one GameObject
 
   Play with gravity/mass of players/dead bodies
   - so jumps are easier
   - simpler to drag dead body along
 
   Apply a/more force through the chain
-
-  Ability to pull on the chain
-  - pull while dancing?
-  - just shorten the chain or apply force
+  - transfer momentum from player
 
   Traps 
   - teleport
@@ -34,10 +26,24 @@ TODO/IDEAS:
   - players can walk through each other
 
 done:
+  Wrap up chains in one GameObject
+
+  Modifier menu
+    + custom buttons and code
+    + done for int and bool
+
   Preview in Treehouse
 
   Late join?
-   - transfer rules from host
+   + transfer rules from host
 
   Save/Restore Ruleset
-  - reset default broken
+   + reset default broken
+
+  Let host set chain length
+   + sync via network
+
+  Ability to pull on the chain
+  + pull while dancing?
+  + shorten the chain 
+  + apply force
