@@ -14,18 +14,29 @@ namespace ChainedChickenMod
     public class ChainedChickenMod : BaseUnityPlugin
     {
         public static ConfigEntry<int> ChainLength;
+        private static Harmony ChainPatches;
 
         void Awake()
         {
             Debug.Log("Let there be chains!");
-            new Harmony("ChainedChicken").PatchAll();
-
+            ChainPatches = new Harmony("ChainedChicken");
+            ChainPatches.PatchAll();
             //Enabled = Config.Bind("General", "Enabled", true);
             ChainLength = Config.Bind("General", "ChainLength", 14, "Length of the chain");
 
             CustomModdedModifiers.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
         }
 
+        void OnDestroy()
+        {
+            Debug.Log("byebye");
+            ChainPatches?.UnpatchSelf();
+            UnloadResources();
+        }
+
+        public static void UnloadResources(){
+
+        }
 
         public static bool isLocalOrModded()
         {
