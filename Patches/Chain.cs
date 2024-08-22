@@ -16,6 +16,79 @@ namespace ChainedChickenMod.Patches
     {
         public static Texture2D Tex2D;
         public static List<GameObject> gl = new List<GameObject>();
+        public static float chPullForce = 80f;
+        public static float chFloorMul = 2.7f;
+        public static float linkPullForce = 0.2f;
+
+        public class ChainInfo : MonoBehaviour
+        {
+            public GameObject chain;
+            public Character ch1;
+            public Character ch2;
+            public DistanceJoint2D dj;
+            public List<GameObject> links = new List<GameObject>();
+            public int length;
+
+            void applyForce(GameObject target, GameObject towards, float f, bool close = false)
+            {
+                var rb = target.GetComponent<Rigidbody2D>();
+                var dir = towards.transform.position - target.transform.position;
+                dir = dir.normalized;
+                if (dir.magnitude > 0.2f)
+                {
+                    if (!close || dir.magnitude < 2.4f)
+                    {
+                        var ch = target.GetComponent<Character>();
+                        if (ch != null && ch.OnGround)
+                        {
+                            f = (f * chFloorMul) + 10;
+                        }
+                        rb.AddForce(dir * new Vector2(f * Time.deltaTime, f * Time.deltaTime), close ? ForceMode2D.Force : ForceMode2D.Impulse);
+                    }
+                }
+
+
+            }
+
+            void Update()
+            {
+                if (ch1 != null && ch2 != null && dj != null)
+                {
+                    if (ch1.dancing || ch2.dancing)
+                    {
+                        dj.distance -= 2f * Time.deltaTime;
+
+                        Debug.Log("Force ??? 3");
+
+                        if (ch1.dancing)
+                        {
+                            Debug.Log("Force");
+                            applyForce(ch2.gameObject, ch1.gameObject, chPullForce);
+
+                            foreach (GameObject o in links)
+                            {
+                                applyForce(o, ch1.gameObject, linkPullForce, true);
+                            }
+                        }
+
+                        if (ch2.dancing)
+                        {
+                            Debug.Log("Force2");
+
+                            applyForce(ch1.gameObject, ch2.gameObject, chPullForce);
+                            foreach (GameObject o in links)
+                            {
+                                applyForce(o, ch2.gameObject, linkPullForce, true);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        dj.distance = length / 2;
+                    }
+                }
+            }
+        }
 
         public static void chainPlayersInTreehouse()
         {
@@ -66,16 +139,30 @@ namespace ChainedChickenMod.Patches
             return null;
         }
 
-
         static void chainChars(int length, Character char1, Character char2)
         {
+            var chain = new GameObject
+            {
+                name = "Chain"
+            };
+            ChainInfo chainInfo = chain.AddComponent<ChainInfo>();
+
+            chainInfo.chain = chain;
+            chainInfo.ch1 = char1;
+            chainInfo.ch2 = char2;
+            chainInfo.length = length;
+
+            gl.Add(chain);
+
             var obj = char1.gameObject;
             for (var i = 0; i <= length; i++)
             {
                 obj = addLink(obj, i);
+                obj.transform.SetParent(chain.transform);
+                chainInfo.links.Add(obj);
                 gl.Add(obj);
             }
-            obj.name = "Last chain";
+            obj.name = "Last link";
             var hinge = obj.AddComponent<HingeJoint2D>();
             hinge.autoConfigureConnectedAnchor = false;
             hinge.connectedBody = char2.GetComponent<Rigidbody2D>();
@@ -85,6 +172,7 @@ namespace ChainedChickenMod.Patches
             hinge.useLimits = false;
 
             var dis = char1.gameObject.AddComponent<DistanceJoint2D>();
+            chainInfo.dj = dis;
             dis.enableCollision = false;
             dis.maxDistanceOnly = true;
             dis.autoConfigureConnectedAnchor = false;
@@ -99,6 +187,7 @@ namespace ChainedChickenMod.Patches
             Texture2D tex = getChainTex();
             Sprite sprite = Sprite.Create(tex, new Rect(0, 0, 279, 102), new Vector2(0.5f, 0.5f));
             GameObject newLink = new GameObject();
+            newLink.name = "Chain link";
             newLink.transform.localScale = new Vector3(0.2f, 0.2f, 0);
             var rig = newLink.AddComponent<Rigidbody2D>();
             rig.mass = 0.00f;
