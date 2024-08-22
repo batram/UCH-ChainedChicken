@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 
-namespace ChainedChickenMod.Patches
+namespace ChainedChicken.Patches
 {
     public class CustomModdedModifiers
     {

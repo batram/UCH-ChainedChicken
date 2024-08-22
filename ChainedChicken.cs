@@ -3,12 +3,12 @@ using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
 using BepInEx.Configuration;
-using ChainedChickenMod.Patches;
+using ChainedChicken.Patches;
 
 [assembly: AssemblyVersion("0.0.0.2")]
 [assembly: AssemblyInformationalVersion("0.0.0.2")]
 
-namespace ChainedChickenMod
+namespace ChainedChicken
 {
     [BepInPlugin("ChainedChicken", "ChainedChicken", "0.0.0.2")]
     public class ChainedChickenMod : BaseUnityPlugin

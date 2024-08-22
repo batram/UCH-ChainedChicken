@@ -10,7 +10,7 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace ChainedChickenMod.Patches
+namespace ChainedChicken.Patches
 {
     public class Chain
     {
@@ -19,6 +19,50 @@ namespace ChainedChickenMod.Patches
         public static float chPullForce = 80f;
         public static float chFloorMul = 2.7f;
         public static float linkPullForce = 0.2f;
+
+        public class ChainRef : MonoBehaviour
+        {
+            public ChainInfo chain;
+
+            public List<Character> GetAllConnected(List<ChainRef> crs = null){
+                List<Character> l = new List<Character>();
+                if(crs == null){
+                    crs = new List<ChainRef>();
+                }
+                if(crs.Contains(this) || chain == null){
+                    return l;
+                }
+                if(!l.Contains(chain.ch1)){
+                    l.Add(chain.ch1);
+                }
+                if(!l.Contains(chain.ch2)){
+                    l.Add(chain.ch2);
+                }
+                crs.Add(this);
+
+                foreach(ChainRef cr in chain.ch1.gameObject.GetComponents<ChainRef>()){
+                    if(!crs.Contains(cr)){
+                        foreach(Character c in cr.GetAllConnected(crs)){
+                            if(!l.Contains(c)){
+                                l.Add(c);
+                            }
+                        }
+                    }
+                }
+
+                foreach(ChainRef cr in chain.ch2.gameObject.GetComponents<ChainRef>()){
+                    if(!crs.Contains(cr)){
+                        foreach(Character c in cr.GetAllConnected(crs)){
+                            if(!l.Contains(c)){
+                                l.Add(c);
+                            }
+                        }
+                    }
+                }
+
+                return l;
+            }
+        }
 
         public class ChainInfo : MonoBehaviour
         {
@@ -141,18 +185,27 @@ namespace ChainedChickenMod.Patches
             return null;
         }
 
+        static ChainInfo AddChainInfo(GameObject target, GameObject chain, Character char1, Character char2, int length){
+            ChainInfo chainInfo = target.AddComponent<ChainInfo>();
+
+            chainInfo.chain = chain;
+            chainInfo.ch1 = char1;
+            chainInfo.ch2 = char2;
+            chainInfo.length = length;
+
+            return chainInfo;
+        }
+
         static void chainChars(int length, Character char1, Character char2)
         {
             var chain = new GameObject
             {
                 name = "Chain"
             };
-            ChainInfo chainInfo = chain.AddComponent<ChainInfo>();
+            ChainInfo chainInfo = AddChainInfo(chain, chain, char1, char2, length);
 
-            chainInfo.chain = chain;
-            chainInfo.ch1 = char1;
-            chainInfo.ch2 = char2;
-            chainInfo.length = length;
+            char1.gameObject.AddComponent<ChainRef>().chain = chainInfo;
+            char2.gameObject.AddComponent<ChainRef>().chain = chainInfo;
 
             gl.Add(chain);
 
@@ -289,7 +342,6 @@ namespace ChainedChickenMod.Patches
                 var disj = c.gameObject.GetComponent<DistanceJoint2D>();
                 if (disj != null)
                 {
-
                     disj.enabled = true;
                 }
 
@@ -328,8 +380,8 @@ namespace ChainedChickenMod.Patches
                 {
                     ModdedModifiers modins = ModdedModifiers.GetWinstance(); ;
 
-                    if (modins.moddedMods.TryGetValue(ChainedChickenMod.ChainLengthKey, out ModModMod m) 
-                    && (bool)m.value)
+                    if (modins.moddedMods.TryGetValue(ChainedChickenMod.ChainPlayersKey, out ModModMod m) 
+                        && (bool)m.value)
                     {
                         List<Character> clist = new List<Character>();
                         foreach (GamePlayer gamePlayer in __instance.PlayerQueue)
