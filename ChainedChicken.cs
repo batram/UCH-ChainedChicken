@@ -13,8 +13,10 @@ namespace ChainedChickenMod
     [BepInPlugin("ChainedChicken", "ChainedChicken", "0.0.0.2")]
     public class ChainedChickenMod : BaseUnityPlugin
     {
-        public static ConfigEntry<int> ChainLength;
+        public static ConfigEntry<int> DefaultChainLength;
         private static Harmony ChainPatches;
+        public const string ChainPlayersKey = "ChainPlayers";
+        public const string ChainLengthKey = "ChainLength";
 
         void Awake()
         {
@@ -22,9 +24,10 @@ namespace ChainedChickenMod
             ChainPatches = new Harmony("ChainedChicken");
             ChainPatches.PatchAll();
             //Enabled = Config.Bind("General", "Enabled", true);
-            ChainLength = Config.Bind("General", "ChainLength", 14, "Length of the chain");
+            DefaultChainLength = Config.Bind("General", "DefaultChainLength", 18, "defaull length of the chain (can be changed in game via modifiers)");
 
-            CustomModdedModifiers.moddedMods.Add("ChainPlayers", new ModModMod(false, false, "Chain Players"));
+            CustomModdedModifiers.moddedMods.Add(ChainPlayersKey, new ModModMod(false, false, "Chain Players"));
+            CustomModdedModifiers.moddedMods.Add(ChainLengthKey, new ModModMod(DefaultChainLength.Value, DefaultChainLength.Value, "Chain Length", new object[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }));
         }
 
         void OnDestroy()
@@ -34,7 +37,8 @@ namespace ChainedChickenMod
             UnloadResources();
         }
 
-        public static void UnloadResources(){
+        public static void UnloadResources()
+        {
 
         }
 

@@ -52,11 +52,12 @@ namespace ChainedChickenMod.Patches
             {
                 if (ch1 != null && ch2 != null && dj != null)
                 {
-                    if (ch1.dancing || ch2.dancing)
+                    if ((ch1.NetworkcurrentAnim == Character.AnimState.WIN && !ch1.Networksuccess)
+                         || (ch2.NetworkcurrentAnim == Character.AnimState.WIN && !ch2.Networksuccess))
                     {
                         dj.distance -= 2f * Time.deltaTime;
 
-                        if (ch1.dancing)
+                        if (ch1.NetworkcurrentAnim == Character.AnimState.WIN && !ch1.Networksuccess)
                         {
                             applyForce(ch2.gameObject, ch1.gameObject, chPullForce);
 
@@ -66,7 +67,7 @@ namespace ChainedChickenMod.Patches
                             }
                         }
 
-                        if (ch2.dancing)
+                        if (ch2.NetworkcurrentAnim == Character.AnimState.WIN && !ch2.Networksuccess)
                         {
                             applyForce(ch1.gameObject, ch2.gameObject, chPullForce);
                             foreach (GameObject o in links)
@@ -98,9 +99,17 @@ namespace ChainedChickenMod.Patches
                     }
                 }
 
-                if (Modifiers.GetInstance().modsPreview && modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
+                if (Modifiers.GetInstance().modsPreview
+                    && modins.moddedMods.TryGetValue(ChainedChickenMod.ChainPlayersKey, out ModModMod bmod)
+                    && (bool)bmod.value)
                 {
-                    Chain.chainPlayers(clist);
+                    int length = ChainedChickenMod.DefaultChainLength.Value;
+                    if (modins.moddedMods.TryGetValue(ChainedChickenMod.ChainLengthKey, out ModModMod lmod) && lmod.value is int)
+                    {
+                        length = (int)lmod.value;
+                    }
+
+                    Chain.chainPlayers(clist, length);
                 }
                 else
                 {
@@ -227,13 +236,13 @@ namespace ChainedChickenMod.Patches
                 }
             }
         }
-        public static IEnumerator chainLater(float sec, List<Character> clist)
+        public static IEnumerator chainLater(float sec, List<Character> clist, int length)
         {
             yield return new WaitForSeconds(sec);
-            chainPlayers(clist);
+            chainPlayers(clist, length);
         }
 
-        public static void chainPlayers(List<Character> clist)
+        public static void chainPlayers(List<Character> clist, int length)
         {
 
             clearChain(clist);
@@ -242,7 +251,7 @@ namespace ChainedChickenMod.Patches
 
             for (var i = 0; i < clist.Count - 1; i++)
             {
-                chainChars(ChainedChickenMod.ChainLength.Value, clist[i], clist[i + 1]);
+                chainChars(length, clist[i], clist[i + 1]);
             }
         }
 
@@ -274,20 +283,25 @@ namespace ChainedChickenMod.Patches
                     disj.enabled = false;
                 }
             }
-            public static IEnumerator enableLater(float sec, DistanceJoint2D disj)
+            public static IEnumerator enableLater(float sec, Character c)
             {
                 yield return new WaitForSeconds(sec);
-                disj.enabled = true;
+                var disj = c.gameObject.GetComponent<DistanceJoint2D>();
+                if (disj != null)
+                {
+
+                    disj.enabled = true;
+                }
+
             }
 
             static void Postfix(Character __instance)
             {
-
                 //Enable chain
                 var disj = __instance.gameObject.GetComponent<DistanceJoint2D>();
                 if (disj != null)
                 {
-                    __instance.StartCoroutine(enableLater(0.3f, disj));
+                    __instance.StartCoroutine(enableLater(0.3f, __instance));
                 }
             }
         }
@@ -314,7 +328,8 @@ namespace ChainedChickenMod.Patches
                 {
                     ModdedModifiers modins = ModdedModifiers.GetWinstance(); ;
 
-                    if (modins.moddedMods.ContainsKey("ChainPlayers") && (bool)modins.moddedMods["ChainPlayers"].value)
+                    if (modins.moddedMods.TryGetValue(ChainedChickenMod.ChainLengthKey, out ModModMod m) 
+                    && (bool)m.value)
                     {
                         List<Character> clist = new List<Character>();
                         foreach (GamePlayer gamePlayer in __instance.PlayerQueue)
@@ -325,8 +340,12 @@ namespace ChainedChickenMod.Patches
                             }
                         }
                         clearChain(clist);
-
-                        __instance.StartCoroutine(chainLater(0.3f, clist));
+                        int length = ChainedChickenMod.DefaultChainLength.Value;
+                        if (modins.moddedMods.TryGetValue(ChainedChickenMod.ChainLengthKey, out ModModMod mod) && mod.value is int)
+                        {
+                            length = (int)mod.value;
+                        }
+                        __instance.StartCoroutine(chainLater(0.3f, clist, length));
                     }
                 }
             }
